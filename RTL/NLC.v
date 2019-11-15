@@ -80,7 +80,9 @@ always @(posedge clk) begin
                end else begin
                   state <= INP_FP_TO_SMC_CONV;
                end
-         
+            MULTI_ACC:
+               
+
             if (srdyi_x_adc == 1'b1) begin
             sr_dyi
        end else begin
