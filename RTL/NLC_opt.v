@@ -1,6 +1,6 @@
 //Please do not change the name and port of the exitingance module
 
-module NLC_opt(
+module NLC_wrapper(
 	
 	//System clock and reset
 	input wire clk,
@@ -290,5 +290,23 @@ module NLC_opt(
 	input wire [31:0] ch0_coeff_0
 	);
 
+NLC iNLC_ch0 (
+   .clk(clk),
+   .reset(reset),
+   .srdyi(srdyi),
+   .srdyo(srdyo),
+   .operation_mode_i(operation_mode_i), 
+   .x_ref_i(x_ref_i),
+   .x_lin(ch0_x_lin),
+   .x_adc(ch0_x_adc), 
+   .recip_stdev(ch0_recip_stdev),
+   .neg_mean(ch0_neg_mean),
+   .coeff_5(ch0_coeff_5),
+   .coeff_4(ch0_coeff_4),
+   .coeff_3(ch0_coeff_3),
+   .coeff_2(ch0_coeff_2),
+   .coeff_1(ch0_coeff_1),
+   .coeff_0(ch0_coeff_0)
+);
 
 endmodule
