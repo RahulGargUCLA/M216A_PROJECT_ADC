@@ -1,6 +1,6 @@
 //Please do not change the name and port of the exitingance module
 
-module NLC_wrapper(
+module NLC_opt(
 	
 	//System clock and reset
 	input wire clk,
@@ -8,7 +8,7 @@ module NLC_wrapper(
 
 	//Input valid and output read signal(one for all 16ch)
 	input wire srdyi,
-	output reg srdyo,
+	output wire srdyo,
 
 	//Calibration control and reference ADC input
 	//00 Fit the ADC with external coefficients feed with the ADC reading
