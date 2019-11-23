@@ -223,17 +223,16 @@ parameter MULTI_ACC_S2          = 3'b101;
 parameter MULTI_ACC_S1          = 3'b110;
 parameter RELEASE_OUTPUT        = 3'b111;
 
-reg [31:0]                      x_adc_int[0:15];
+reg [31:0]                      pipe_buff[0:15];
+reg [31:0]                      mac_pipe_buff;
 reg [3:0]                       counter1;
 reg [3:0]                       counter2;
 reg [3:0]                       counter3;
 reg [3:0]                       counter4;
-
 reg [2:0]                       state;
 reg [31:0]                      int_coeff[0:15][0:5];
 reg [31:0]                      int_recip_stdev[0:15];
 reg [31:0]                      int_neg_mean[0:15];
-reg [31:0]                      mac_pipe_delay;
 
 reg [20:0]                      x_adc_fp;
 reg [31:0]                      x_i_porty_add;
@@ -336,16 +335,13 @@ always @(*) begin
    x_lin_reg[14]       <=  21'b0;
    x_lin_reg[15]       <=  21'b0;
    case(state) 
-      IDLE: begin
-         x_adc_fp       <= x_adc_int[counter1];
-      end
       INP_CONV_NORM: begin
-         x_adc_fp       <=  x_adc_int[counter1];
+         x_adc_fp       <=  pipe_buff[counter1][20:0];
          x_i_porty_add  <=  x_adc_smc;
          y_i_porty_add  <=  int_neg_mean[counter2];
          srdyi_i_add    <=  srdyo_x_adc;
          if (counter4==15) begin
-            x_i_porty_mul  <=  x_adc_int[counter1];
+            x_i_porty_mul  <=  pipe_buff[counter1];
             y_i_porty_mul  <=  int_coeff[counter1][5];
          end else begin
             x_i_porty_mul  <=  z_o_portx_add;
@@ -355,43 +351,43 @@ always @(*) begin
       end
       MULTI_ACC_S5: begin
          if (counter2 > 9) begin
-            y_i_porty_mul  <=  mac_pipe_delay;
+            y_i_porty_mul  <=  mac_pipe_buff;
          end else begin
             y_i_porty_mul  <=  int_coeff[counter1][5];
          end
-         x_i_porty_mul  <=  x_adc_int[counter1];
+         x_i_porty_mul  <=  pipe_buff[counter1];
          srdyi_i_mul    <=  srdyi_i_mul_mac;
          x_i_porty_add  <=  z_o_portx_mul;
          y_i_porty_add  <=  int_coeff[counter2][4];
          srdyi_i_add    <=  srdyo_o_mul;
       end
       MULTI_ACC_S4: begin
-         y_i_porty_mul  <=  mac_pipe_delay;
-         x_i_porty_mul  <=  x_adc_int[counter1];
+         y_i_porty_mul  <=  mac_pipe_buff;
+         x_i_porty_mul  <=  pipe_buff[counter1];
          srdyi_i_mul    <=  srdyi_i_mul_mac;
          x_i_porty_add  <=  z_o_portx_mul;
          y_i_porty_add  <=  int_coeff[counter2][3];
          srdyi_i_add    <=  srdyo_o_mul;
       end
       MULTI_ACC_S3: begin
-         y_i_porty_mul  <=  mac_pipe_delay;
-         x_i_porty_mul  <=  x_adc_int[counter1];
+         y_i_porty_mul  <=  mac_pipe_buff;
+         x_i_porty_mul  <=  pipe_buff[counter1];
          srdyi_i_mul    <=  srdyi_i_mul_mac;
          x_i_porty_add  <=  z_o_portx_mul;
          y_i_porty_add  <=  int_coeff[counter2][2];
          srdyi_i_add    <=  srdyo_o_mul;
       end
        MULTI_ACC_S2: begin
-         y_i_porty_mul  <=  mac_pipe_delay;
-         x_i_porty_mul  <=  x_adc_int[counter1];
+         y_i_porty_mul  <=  mac_pipe_buff;
+         x_i_porty_mul  <=  pipe_buff[counter1];
          srdyi_i_mul    <=  srdyi_i_mul_mac;
          x_i_porty_add  <=  z_o_portx_mul;
          y_i_porty_add  <=  int_coeff[counter2][1];
          srdyi_i_add    <=  srdyo_o_mul;
       end
       MULTI_ACC_S1: begin
-         y_i_porty_mul  <=  mac_pipe_delay;
-         x_i_porty_mul  <=  x_adc_int[counter1];
+         y_i_porty_mul  <=  mac_pipe_buff;
+         x_i_porty_mul  <=  pipe_buff[counter1];
          srdyi_i_mul    <=  srdyi_i_mul_mac;
          x_i_porty_add  <=  z_o_portx_mul;
          y_i_porty_add  <=  int_coeff[counter2][0];
@@ -399,22 +395,22 @@ always @(*) begin
          x_lin_smc      <=  z_o_portx_add;
       end
       RELEASE_OUTPUT: begin
-         x_lin_reg[0]   <=  x_adc_int[0];
-         x_lin_reg[1]   <=  x_adc_int[1];
-         x_lin_reg[2]   <=  x_adc_int[2];
-         x_lin_reg[3]   <=  x_adc_int[3];
-         x_lin_reg[4]   <=  x_adc_int[4];
-         x_lin_reg[5]   <=  x_adc_int[5];
-         x_lin_reg[6]   <=  x_adc_int[6];
-         x_lin_reg[7]   <=  x_adc_int[7];
-         x_lin_reg[8]   <=  x_adc_int[8];
-         x_lin_reg[9]   <=  x_adc_int[9];
-         x_lin_reg[10]  <=  x_adc_int[10];
-         x_lin_reg[11]  <=  x_adc_int[11];
-         x_lin_reg[12]  <=  x_adc_int[12];
-         x_lin_reg[13]  <=  x_adc_int[13];
-         x_lin_reg[14]  <=  x_adc_int[14];
-         x_lin_reg[15]  <=  x_adc_int[15];
+         x_lin_reg[0]   <=  pipe_buff[0][20:0];
+         x_lin_reg[1]   <=  pipe_buff[1][20:0];
+         x_lin_reg[2]   <=  pipe_buff[2][20:0];
+         x_lin_reg[3]   <=  pipe_buff[3][20:0];
+         x_lin_reg[4]   <=  pipe_buff[4][20:0];
+         x_lin_reg[5]   <=  pipe_buff[5][20:0];
+         x_lin_reg[6]   <=  pipe_buff[6][20:0];
+         x_lin_reg[7]   <=  pipe_buff[7][20:0];
+         x_lin_reg[8]   <=  pipe_buff[8][20:0];
+         x_lin_reg[9]   <=  pipe_buff[9][20:0];
+         x_lin_reg[10]  <=  pipe_buff[10][20:0];
+         x_lin_reg[11]  <=  pipe_buff[11][20:0];
+         x_lin_reg[12]  <=  pipe_buff[12][20:0];
+         x_lin_reg[13]  <=  pipe_buff[13][20:0];
+         x_lin_reg[14]  <=  pipe_buff[14][20:0];
+         x_lin_reg[15]  <=  pipe_buff[15][20:0];
          srdyo          <=  1'b1;
       end
   endcase
@@ -430,30 +426,46 @@ always @(posedge clk) begin
       srdyi_i_mul_mac  <=  1'b0;
       srdyi_x_lin      <=  1'b0;
       srdyi_x_adc      <=  1'b0;
-      mac_pipe_delay   <=  32'b0;
+      mac_pipe_buff   <=  32'b0;
+      pipe_buff[0]     <=  32'b0;
+      pipe_buff[1]     <=  32'b0;
+      pipe_buff[2]     <=  32'b0;
+      pipe_buff[3]     <=  32'b0;
+      pipe_buff[4]     <=  32'b0;
+      pipe_buff[5]     <=  32'b0;
+      pipe_buff[6]     <=  32'b0;
+      pipe_buff[7]     <=  32'b0;
+      pipe_buff[8]     <=  32'b0;
+      pipe_buff[9]     <=  32'b0;
+      pipe_buff[10]    <=  32'b0;
+      pipe_buff[11]    <=  32'b0;
+      pipe_buff[12]    <=  32'b0;
+      pipe_buff[13]    <=  32'b0;
+      pipe_buff[14]    <=  32'b0;
+      pipe_buff[15]    <=  32'b0;
    end else begin
       case (state)
          IDLE: begin
             if (srdyi) begin
-               x_adc_int[0]   <=  ch0_x_adc;
-               x_adc_int[1]   <=  ch1_x_adc;
-               x_adc_int[2]   <=  ch2_x_adc;
-               x_adc_int[3]   <=  ch3_x_adc;
-               x_adc_int[4]   <=  ch4_x_adc;
-               x_adc_int[5]   <=  ch5_x_adc;
-               x_adc_int[6]   <=  ch6_x_adc;
-               x_adc_int[7]   <=  ch7_x_adc;
-               x_adc_int[8]   <=  ch8_x_adc;
-               x_adc_int[9]   <=  ch9_x_adc;
-               x_adc_int[10]  <=  ch10_x_adc;
-               x_adc_int[11]  <=  ch11_x_adc;
-               x_adc_int[12]  <=  ch12_x_adc;
-               x_adc_int[13]  <=  ch13_x_adc;
-               x_adc_int[14]  <=  ch14_x_adc;
-               x_adc_int[15]  <=  ch15_x_adc;
-               counter1       <=  4'b0;
-               state          <=  INP_CONV_NORM;
-               srdyi_x_adc    <=  1'b1;
+               pipe_buff[0][20:0]   <=  ch0_x_adc;
+               pipe_buff[1][20:0]   <=  ch1_x_adc;
+               pipe_buff[2][20:0]   <=  ch2_x_adc;
+               pipe_buff[3][20:0]   <=  ch3_x_adc;
+               pipe_buff[4][20:0]   <=  ch4_x_adc;
+               pipe_buff[5][20:0]   <=  ch5_x_adc;
+               pipe_buff[6][20:0]   <=  ch6_x_adc;
+               pipe_buff[7][20:0]   <=  ch7_x_adc;
+               pipe_buff[8][20:0]   <=  ch8_x_adc;
+               pipe_buff[9][20:0]   <=  ch9_x_adc;
+               pipe_buff[10][20:0]  <=  ch10_x_adc;
+               pipe_buff[11][20:0]  <=  ch11_x_adc;
+               pipe_buff[12][20:0]  <=  ch12_x_adc;
+               pipe_buff[13][20:0]  <=  ch13_x_adc;
+               pipe_buff[14][20:0]  <=  ch14_x_adc;
+               pipe_buff[15][20:0]  <=  ch15_x_adc;
+               counter1             <=  4'b0;
+               state                <=  INP_CONV_NORM;
+               srdyi_x_adc          <=  1'b1;
             end
          end
          INP_CONV_NORM: begin
@@ -471,7 +483,7 @@ always @(posedge clk) begin
                state <= MULTI_ACC_S5;
             end 
             if (srdyo_o_mul==1'b1) begin
-               x_adc_int[counter4] <= z_o_portx_mul;
+               pipe_buff[counter4] <= z_o_portx_mul;
                counter4 <= counter4+1;
             end
          end
@@ -489,7 +501,7 @@ always @(posedge clk) begin
             if (counter2 == 15) 
                state <= MULTI_ACC_S4;
             if (srdyo_o_add)
-               mac_pipe_delay <= z_o_portx_add;
+               mac_pipe_buff <= z_o_portx_add;
          end
          MULTI_ACC_S4: begin
             if (counter1 != 15)  
@@ -505,7 +517,7 @@ always @(posedge clk) begin
             if (counter2 == 15) 
                state <= MULTI_ACC_S3;
             if (srdyo_o_add)
-               mac_pipe_delay <= z_o_portx_add;
+               mac_pipe_buff <= z_o_portx_add;
          end
          MULTI_ACC_S3: begin
             if (counter1 != 15)  
@@ -521,7 +533,7 @@ always @(posedge clk) begin
             if (counter2 == 15) 
                state <= MULTI_ACC_S2;
             if (srdyo_o_add)
-               mac_pipe_delay <= z_o_portx_add;
+               mac_pipe_buff <= z_o_portx_add;
          end
          MULTI_ACC_S2: begin
             if (counter1 != 15)  
@@ -537,7 +549,7 @@ always @(posedge clk) begin
             if (counter2 == 15) 
                state <= MULTI_ACC_S1;
             if (srdyo_o_add)
-               mac_pipe_delay <= z_o_portx_add;
+               mac_pipe_buff <= z_o_portx_add;
          end
          MULTI_ACC_S1: begin
             if (counter1 != 15)  
@@ -553,11 +565,11 @@ always @(posedge clk) begin
             if (counter3 == 15) 
                state <= RELEASE_OUTPUT;
             if (srdyo_x_lin) begin
-               x_adc_int[counter3] <= x_lin;
+               pipe_buff[counter3][20:0] <= x_lin;
                counter3 <= counter3+1;
             end
             if (srdyo_o_add)
-               mac_pipe_delay <= z_o_portx_add;
+               mac_pipe_buff <= z_o_portx_add;
          end
          RELEASE_OUTPUT: begin
             state <= IDLE;
