@@ -43,6 +43,15 @@ parameter MULTI_ACC_S2          = 4'b0111;
 parameter MULTI_ACC_S1          = 4'b1000;
 parameter OUT_SMC_TO_FP_CONV    = 4'b1001;
 
+parameter INT_COEFF_0 = 32'd3295300608;
+parameter INT_COEFF_1 = 32'd1204777600;
+parameter INT_COEFF_2 = 32'd1144191360;
+parameter INT_COEFF_3 = 32'd1161335040;
+parameter INT_COEFF_4 = 32'd1130617856;
+parameter INT_COEFF_5 = 32'd1140169600;
+parameter INT_NEG_MEAN = 32'd3342340864;
+parameter INT_RECIP_STDEV = 32'd921889856;
+
 reg [3:0]                       state;
 reg [31:0]                      int_coeff[0:5];
 reg [31:0]                      int_recip_stdev;
@@ -127,7 +136,7 @@ always @(*) begin
       end
       SCALE_INPUT_MUL: begin
          srdyi_i_mul    <=  srdyo_o_mul;
-         x_i_porty_mul  <=  x_adc_smc_scaled;
+         x_i_porty_mul  <=  z_o_portx_mul;
          y_i_porty_mul  <=  int_coeff[5];
       end
       MULTI_ACC_S5: begin
@@ -169,22 +178,12 @@ always @(*) begin
          srdyi_x_lin    <=  srdyo_o_add;
          x_lin_smc      <=  z_o_portx_add;
       end
-      //OUT_SMC_TO_FP_CONV: begin
-      //end
    endcase
 end
 
 always @(posedge clk) begin
    if (reset) begin
-      state <= INP_FP_TO_SMC_CONV;
-      int_coeff[0] <= 32'd3295300608; 
-      int_coeff[1] <= 32'd1204777600;
-      int_coeff[2] <= 32'd1144191360;
-      int_coeff[3] <= 32'd1161335040;
-      int_coeff[4] <= 32'd1130617856;
-      int_coeff[5] <= 32'd1140169600;
-      int_neg_mean     <= 32'd3342340864;
-      int_recip_stdev  <= 32'd921889856;
+      state <= INP_FP_TO_SMC_CONV;      
       x_adc_smc_scaled <= 32'b0;
    end else begin
       case (state)
@@ -227,6 +226,34 @@ always @(posedge clk) begin
                state <= INP_FP_TO_SMC_CONV;
          end
          default: state <= INP_FP_TO_SMC_CONV;
+      endcase
+   end
+end
+
+// Latches for storing coefficients and other parameters.
+always @(posedge clk) begin
+   if (reset) begin
+      int_coeff[0]      <= INT_COEFF_0; 
+      int_coeff[1]      <= INT_COEFF_1;
+      int_coeff[2]      <= INT_COEFF_2;
+      int_coeff[3]      <= INT_COEFF_3;
+      int_coeff[4]      <= INT_COEFF_4;
+      int_coeff[5]      <= INT_COEFF_5;
+      int_neg_mean      <= INT_NEG_MEAN; 
+      int_recip_stdev   <= INT_RECIP_STDEV;
+   end else if (srdyi) begin
+      case (operation_mode_i) 
+         // Take inputs from outside
+         2'b00: begin
+            int_coeff[0] <= coeff_0;          
+            int_coeff[1] <= coeff_1;
+            int_coeff[2] <= coeff_2;
+            int_coeff[3] <= coeff_3;
+            int_coeff[4] <= coeff_4;
+            int_coeff[5] <= coeff_5;
+            int_neg_mean     <= neg_mean;
+            int_recip_stdev  <= recip_stdev;
+         end
       endcase
    end
 end
