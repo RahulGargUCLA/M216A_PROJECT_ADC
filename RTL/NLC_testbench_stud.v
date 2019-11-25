@@ -236,42 +236,6 @@ wire [0:0] srdyo_int;
 reg [0:0] srdyi_int;
 reg [20:0]x_lin_ref_int;
 
-//NLC_wrapper NLC_wrapper_DUT (
-//    .clk_port(clk_int),
-//    .reset_port(GlobalResetDsgn),
-//    .operation_mode_i_port(operation_mode_i_int),
-//    .ch_recip_stdev_port(stdev_porty_int),
-//    .ch_neg_mean_port(mean_porty_int),
-//    .ch_x_lin_port_15(x_lin_int_ch15),
-//    .ch_x_lin_port_14(x_lin_int_ch14),
-//    .ch_x_lin_port_13(x_lin_int_ch13),
-//    .ch_x_lin_port_12(x_lin_int_ch12),
-//    .ch_x_lin_port_11(x_lin_int_ch11),
-//    .ch_x_lin_port_10(x_lin_int_ch10),
-//    .ch_x_lin_port_9(x_lin_int_ch9),
-//    .ch_x_lin_port_8(x_lin_int_ch8),
-//    .ch_x_lin_port_7(x_lin_int_ch7),
-//    .ch_x_lin_port_6(x_lin_int_ch6),
-//    .ch_x_lin_port_5(x_lin_int_ch5),
-//    .ch_x_lin_port_4(x_lin_int_ch4),
-//    .ch_x_lin_port_3(x_lin_int_ch3),
-//    .ch_x_lin_port_2(x_lin_int_ch2),
-//    .ch_x_lin_port_1(x_lin_int_ch1),
-//    .ch_x_lin_port_0(x_lin_int_ch0),
-//    .ch_coeff_5_port(coeff_5_porty_int),
-//    .ch_coeff_4_port(coeff_4_porty_int),
-//    .ch_coeff_3_port(coeff_3_porty_int),
-//    .ch_coeff_2_port(coeff_2_porty_int),
-//    .ch_coeff_1_port(coeff_1_porty_int),
-//    .ch_coeff_0_port(coeff_0_porty_int),
-//    .ch_x_adc_port(x_adc_int),
-//    .x_ref_i_port(x_ref_port_int),
-//    .srdyo_port(srdyo_int),
-//    .srdyi_port(srdyi_int)
-//  );
-
-// define x_ref_int
-
 NLC_opt NLC_opt_wrapper_DUT(
    .clk(clk_int),
    .reset(GlobalResetDsgn),
