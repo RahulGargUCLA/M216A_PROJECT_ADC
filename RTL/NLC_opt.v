@@ -291,6 +291,9 @@ smc_float_adder ismc_float_adder (
    .srdyi_i(srdyi_i_add)
 );
 
+// x_lin_reg are 16 21-bit registers holding the final ieee fp o/p of each
+// channel
+
 assign ch0_x_lin = x_lin_reg[0];
 assign ch1_x_lin = x_lin_reg[1];
 assign ch2_x_lin = x_lin_reg[2];
@@ -336,18 +339,18 @@ always @(*) begin
    x_lin_reg[15]       <=  21'b0;
    case(state) 
       INP_CONV_NORM: begin
-         x_adc_fp       <=  pipe_buff[counter1][20:0];
-         x_i_porty_add  <=  x_adc_smc;
-         y_i_porty_add  <=  int_neg_mean[counter2];
-         srdyi_i_add    <=  srdyo_x_adc;
+         x_adc_fp       <=  pipe_buff[counter1][20:0]; // give input fp values to the converter 
+         x_i_porty_add  <=  x_adc_smc; // connect converter o/p to the adder
+         y_i_porty_add  <=  int_neg_mean[counter2]; // give channel mean to the adder
+         srdyi_i_add    <=  srdyo_x_adc; // activate the adder when conversion is done
          if (counter4==15) begin
             x_i_porty_mul  <=  pipe_buff[counter1];
             y_i_porty_mul  <=  int_coeff[counter1][5];
          end else begin
-            x_i_porty_mul  <=  z_o_portx_add;
-            y_i_porty_mul  <=  int_recip_stdev[counter3];
+            x_i_porty_mul  <=  z_o_portx_add; // feed the adder o/p to the multiplier
+            y_i_porty_mul  <=  int_recip_stdev[counter3]; // feed the mean to the multiplier
          end
-         srdyi_i_mul    <=  srdyo_o_add | srdyi_i_mul_mac;
+         srdyi_i_mul    <=  srdyo_o_add | srdyi_i_mul_mac; // 
       end
       MULTI_ACC_S5: begin
          if (counter2 > 9) begin
@@ -446,6 +449,8 @@ always @(posedge clk) begin
    end else begin
       case (state)
          IDLE: begin
+            // if i/p is valid on the channels, latch them into pipe_buff
+            // move to the conversion and normalization state
             if (srdyi) begin
                pipe_buff[0][20:0]   <=  ch0_x_adc;
                pipe_buff[1][20:0]   <=  ch1_x_adc;
@@ -463,29 +468,36 @@ always @(posedge clk) begin
                pipe_buff[13][20:0]  <=  ch13_x_adc;
                pipe_buff[14][20:0]  <=  ch14_x_adc;
                pipe_buff[15][20:0]  <=  ch15_x_adc;
-               counter1             <=  4'b0;
+               counter1             <=  4'b0; 
+               counter2             <=  4'b0;
+               counter3             <=  4'b0;
+               counter4             <=  4'b0;
                state                <=  INP_CONV_NORM;
-               srdyi_x_adc          <=  1'b1;
+               srdyi_x_adc          <=  1'b1; // start the converter
             end
          end
          INP_CONV_NORM: begin
             if (counter1!=15)  
                counter1 <= counter1+1;
             else
-               srdyi_x_adc <= 1'b0;
-            if (srdyo_x_adc==1'b1) 
-               counter2 <= counter2+1;
-            if (srdyo_o_add==1'b1)
-               counter3 <= counter3+1;
-            if (counter4==15) begin
-               counter1 <= 4'b0;
-               srdyi_i_mul_mac <= 1'b1;
-               state <= MULTI_ACC_S5;
-            end 
-            if (srdyo_o_mul==1'b1) begin
-               pipe_buff[counter4] <= z_o_portx_mul;
+               srdyi_x_adc <= 1'b0; // conversion is finished, invalidate it's i/p
+            
+            if (srdyo_x_adc==1'b1) // if converter is producing a valid o/p
+               counter2 <= counter2+1; // give the next mean to the adder
+            
+            if (srdyo_o_add==1'b1) // if the adder is producing a valid o/p
+               counter3 <= counter3+1; // give the next stdev to the mult
+           
+            if (srdyo_o_mul==1'b1) begin // if the multiplier is producing a valid o/p
+               pipe_buff[counter4] <= z_o_portx_mul; // store the normalized valued in pipe_buff
                counter4 <= counter4+1;
             end
+
+            if (counter4==15) begin // we are done with normalization, move on to MAC stages
+               counter1 <= 4'b0;
+               srdyi_i_mul_mac <= 1'b1; // keep the multiplier i/p valid
+               state <= MULTI_ACC_S5;
+            end 
          end
          MULTI_ACC_S5: begin
             if (counter1 != 15)  

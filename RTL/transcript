@@ -1,0 +1,17 @@
+# //  ModelSim SE-64 10.1c Jul 27 2012 Linux 2.6.32-754.24.2.el6.x86_64
+# //
+# //  Copyright 1991-2012 Mentor Graphics Corporation
+# //  All Rights Reserved.
+# //
+# //  THIS WORK CONTAINS TRADE SECRET AND PROPRIETARY INFORMATION
+# //  WHICH IS THE PROPERTY OF MENTOR GRAPHICS CORPORATION OR ITS
+# //  LICENSORS AND IS SUBJECT TO LICENSE TERMS.
+# //
+# vsim NLC_testbench_stud 
+# ** Note: (vsim-3813) Design is being optimized due to module recompilation...
+# ** Warning: NLC_testbench_stud.v(429): (vopt-2241) Connection width does not match width of port 'x_ref_i'. The port definition is at: NLC_opt.v(25).
+# ** Warning: NLC_testbench_stud.v(429): (vopt-2685) [TFMPC] - Too few port connections for 'NLC_opt_wrapper_DUT'.  Expected 166, found 165.
+# ** Warning: NLC_testbench_stud.v(429): (vopt-2718) [TFMPC] - Missing connection for port 'srdyo'.
+# Loading work.NLC_testbench_stud(fast)
+# Window cannot be closed because the modal window "Quit Vsim" is still open.
+# Window cannot be closed because the modal window "Quit Vsim" is still open.
