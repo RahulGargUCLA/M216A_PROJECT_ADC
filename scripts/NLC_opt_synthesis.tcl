@@ -23,12 +23,12 @@ set alib_library_analysis_path ?/alib-52/?
 #analyze -format verilog {define.h }
 
 
-analyze -format verilog {SynLib.v}
-analyze -format verilog {smc_float_adder.v}
-analyze -format verilog {smc_float_to_fp.v}
-analyze -format verilog {smc_float_multiplier.v}
-analyze -format verilog {fp_to_smc_float.v}
-analyze -format verilog {NLC_opt.v}
+analyze -format verilog {../RTL/SynLib.v}
+analyze -format verilog {../RTL/smc_float_adder.v}
+analyze -format verilog {../RTL/smc_float_to_fp.v}
+analyze -format verilog {../RTL/smc_float_multiplier.v}
+analyze -format verilog {../RTL/fp_to_smc_float.v}
+analyze -format verilog {../RTL/NLC_opt.v}
 
 set DESIGN_NAME NLC_opt
 
