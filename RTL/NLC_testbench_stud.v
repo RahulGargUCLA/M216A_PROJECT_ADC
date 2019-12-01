@@ -236,7 +236,7 @@ wire [0:0] srdyo_int;
 reg [0:0] srdyi_int;
 reg [20:0]x_lin_ref_int;
 
-NLC_opt NLC_opt_wrapper_DUT(
+NLC_bonus NLC_opt_wrapper_DUT(
    .clk(clk_int),
    .reset(GlobalResetDsgn),
    .srdyi(srdyi_int),
@@ -767,57 +767,12 @@ clocks #(.cperiod(166666), .rperiod(1666660)) CL(
          x_ref_port_int        <=  0;
          srdyi_int             <=  1;
       end else if(loop_cnt == 201) begin
-        operation_mode_i_int <= 2'b11;
-         recip_stdev_ch0  <=  32'd921889856;
-         recip_stdev_ch1  <=  32'd1073741824;
-         recip_stdev_ch2  <=  32'd1073741824;
-         recip_stdev_ch3  <=  32'd1073741824;
-         recip_stdev_ch4  <=  32'd1073741824;
-         recip_stdev_ch5  <=  32'd1073741824;
-         recip_stdev_ch6  <=  32'd1073741824;
-         recip_stdev_ch7  <=  32'd1073741824;
-         recip_stdev_ch8  <=  32'd1073741824;
-         recip_stdev_ch9  <=  32'd1073741824;
-         recip_stdev_ch10  <=  32'd1073741824;
-         recip_stdev_ch11  <=  32'd1073741824;
-         recip_stdev_ch12  <=  32'd1073741824;
-         recip_stdev_ch13  <=  32'd1073741824;
-         recip_stdev_ch14  <=  32'd1073741824;
-         recip_stdev_ch15  <=  32'd1073741824;
-         neg_mean_ch0  <=  32'd3342340864;
-         neg_mean_ch1  <=  32'd879037952;
-         neg_mean_ch2  <=  32'd852988928;
-         neg_mean_ch3  <=  32'd852988928;
-         neg_mean_ch4  <=  32'd852988928;
-         neg_mean_ch5  <=  32'd852988928;
-         neg_mean_ch6  <=  32'd852988928;
-         neg_mean_ch7  <=  32'd852988928;
-         neg_mean_ch8  <=  32'd852988928;
-         neg_mean_ch9  <=  32'd852988928;
-         neg_mean_ch10  <=  32'd852988928;
-         neg_mean_ch11  <=  32'd852988928;
-         neg_mean_ch12  <=  32'd852988928;
-         neg_mean_ch13  <=  32'd852988928;
-         neg_mean_ch14  <=  32'd852988928;
-         neg_mean_ch15  <=  32'd3013717760;
-        x_adc_int_ch0 <= 16666;
-        x_adc_int_ch1 <= 16667;
-        x_adc_int_ch2 <= 16668;
-        x_adc_int_ch3 <= 16669;
-        x_adc_int_ch4 <= 16670;
-        x_adc_int_ch5 <= 16671;
-        x_adc_int_ch6 <= 16672;
-        x_adc_int_ch7 <= 23342;
-        x_adc_int_ch8 <= 23336;
-        x_adc_int_ch9 <= 23335;
-        x_adc_int_ch10 <= 23338;
-        x_adc_int_ch11 <= 23335;
-        x_adc_int_ch12 <= 23334;
-        x_adc_int_ch13 <= 23333;
-        x_adc_int_ch14 <= 24000;
-        x_adc_int_ch15 <= 23332;
-
-        srdyi_int <= 1;
+         operation_mode_i_int  <=  2'b10;
+         recip_stdev_ch0       <=  32'd921889856;
+         x_adc_int_ch0         <=  32'd23333;
+         x_ref_int             <=  21'h1FFE00;
+         neg_mean_ch0          <=  32'd3342340864;
+         srdyi_int             <=  1;
       end else if(loop_cnt == 401) begin
         operation_mode_i_int <= 2'b11;
          recip_stdev_ch0  <=  32'd921889856;
