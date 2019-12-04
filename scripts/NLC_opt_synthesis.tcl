@@ -69,15 +69,15 @@ set_max_total_power 0.0
 
 
 set_leakage_optimization true
-#set_cost_priority -delay
+set_cost_priority -min_delay
 
 ungroup -flatten -all
 uniquify
 
 compile -map_effort low
 
-#compile_ultra -incremental -retime 
-#compile_ultra -only_design_rule -incremental 
+compile_ultra -incremental -retime 
+compile_ultra -only_design_rule -incremental 
 
 
 #Export the report

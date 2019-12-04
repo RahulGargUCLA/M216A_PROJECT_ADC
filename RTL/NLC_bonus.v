@@ -262,11 +262,9 @@ wire                            srdyo_o_mul;
 wire [20:0]                     x_lin;
 reg [20:0]                      x_lin_reg[0:15];
 
-reg [20:0]                      x_ref_i_r;
 reg [1:0]                       operation_mode_i_r;
 reg [2:0]                       state_ref;
 wire [31:0]                     x_ref_smc;
-reg                             srdyi_x_ref;
 wire                            srdyo_x_ref;
 wire [31:0]                     z_o_portx_mul_ref;
 reg [31:0]                      x_ref_neg;
@@ -276,9 +274,10 @@ reg                             flag;
 wire [31:0]                     z_o_portx_add_ref;
 reg                             srdyi_add_x_ref;
 wire                            srdyo_add_x_ref;
-reg [30:0]                      error_max;
-reg [20:0]                      error_fp;
+reg [31:0]                      error_max;
+wire [20:0]                     error_fp;
 wire                            srdyo_error_fp;
+reg                             srdyi_x_ref;
 
 fp_to_smc_float ifp_to_smc_float_x_adc (
     .clk(clk),
@@ -321,10 +320,10 @@ smc_float_adder ismc_float_adder (
 fp_to_smc_float ifp_to_smc_float_x_adc_ref (
    .clk(clk),
    .GlobalReset(reset),
-   .x_i(x_ref_i_r),
+   .x_i(x_ref_i),
    .y_o_portx(x_ref_smc),
    .srdyo_o(srdyo_x_ref),
-   .srdyi_i(srdyi_x_ref) 
+   .srdyi_i(srdyi) 
 );
 
 smc_float_multiplier ismc_float_multiplier_ref (
@@ -350,10 +349,10 @@ smc_float_adder ismc_float_adder_ref (
 smc_float_to_fp ismc_float_to_fp_x_lin_ref (
    .clk(clk),
    .GlobalReset(reset),
-   .x_i_porty(z_o_portx_add_ref),
+   .x_i_porty(error_max),
    .y_o(error_fp),
    .srdyo_o(srdyo_error_fp),
-   .srdyi_i(srdyo_add_x_ref)
+   .srdyi_i(srdyi_x_ref)
 );
 
 
@@ -492,7 +491,6 @@ always @(posedge clk) begin
       counter2         <=  4'b0;
       counter3         <=  4'b0;
       counter4         <=  4'b0;
-reg                             srdyi_add_x_ref;
       srdyi_i_mul_mac  <=  1'b0;
       srdyi_x_lin      <=  1'b0;
       srdyi_x_adc      <=  1'b0;
@@ -639,7 +637,7 @@ reg                             srdyi_add_x_ref;
                counter2 <= counter2+1;
             if (counter2 == 8) 
                srdyi_x_lin <= 1'b1;
-            if (counter2 == 8) begin
+            if (counter2 == 9) begin
                x_lin_smc_bonus <= z_o_portx_add;
                flag <= 1;
             end
@@ -665,31 +663,25 @@ end
 
 always @(posedge clk) begin
    if (reset) begin
-      x_ref_i_r <= 32'b0;
       operation_mode_i_r <= 2'b00;
       state_ref <= IDLE_REF;
-      srdyi_x_ref <= 1'b0;
       x_ref_neg <= 32'b0;
-      srdyi_mul_x_ref <= 1'b0;
       x_lin_smc_bonus <= 32'b0;
       flag = 1'b0;
       srdyi_add_x_ref <= 1'b0;
-      error_max <= 21'b0;
-   end
-   else begin
-      case (state_ref) begin
+      error_max <= 32'b0;
+      srdyi_x_ref <= 1'b0;
+   end else begin
+      case (state_ref) 
          IDLE_REF: begin
             if (srdyi) begin
-               flag <= 0;
-               error_max <= 21'b0;
+               flag <= 1'b0;
                if (operation_mode_i==2'b10) begin
                   state_ref <= REF_CONV;
-                  srdyi_x_ref <= 1'b1;
                end
             end
          end
          REF_CONV: begin
-            srdyi_x_ref <= 1'b0;
             if (srdyo_mul_x_ref) begin
                state_ref <= ERROR_CALC;
                x_ref_neg <= z_o_portx_mul_ref;
@@ -703,9 +695,16 @@ always @(posedge clk) begin
          end
          ERROR_COMP: begin
             srdyi_add_x_ref <= 1'b0;
-            if (srdyo_error_fp) begin
-               // compare the output of converter with error_max
+            if (srdyo_add_x_ref) begin
+               if(z_o_portx_add_ref[30:0] > error_max[30:0])
+                  error_max[30:0] <= z_o_portx_add_ref[30:0];
+               state_ref <= ERROR_CONV;
+               srdyi_x_ref <= 1'b1;
             end
+         end
+         ERROR_CONV: begin
+            srdyi_x_ref <= 1'b0;
+            state_ref <= IDLE_REF;
          end
       endcase
    end
@@ -847,7 +846,6 @@ always @(posedge clk) begin
             int_coeff[15][5]     <= ch15_coeff_5;
           end
           2'b10: begin
-            x_ref_i_r <= x_ref_i; // Assuming that next x and x_ref will come after a lot of cycles
             operation_mode_i_r <= operation_mode_i;
             end
       endcase

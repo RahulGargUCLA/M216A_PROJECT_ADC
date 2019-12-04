@@ -593,8 +593,8 @@ always @(posedge clk) begin
 end
 
 // Coefficients/Mean/Standard Deviation 
-always @(posedge clk) begin
-   if (srdyi) begin
+always @(clk, srdyi) begin
+   if (clk & srdyi) begin
       int_neg_mean[0]        <= ch0_neg_mean;
       int_neg_mean[1]        <= ch1_neg_mean;
       int_neg_mean[2]        <= ch2_neg_mean;
