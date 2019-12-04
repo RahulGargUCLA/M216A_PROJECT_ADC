@@ -20,7 +20,7 @@
  */
 // **       Copyright 2005-2014 Synopsys, Inc.  All rights reserved.    **
 
-`include "/home/nanoproj/rahulg/courses/m216a/project/RTL/define.h"
+`include "define.h"
 `define log_floor(n)   ((n) <= (1<<0) ? 0 : (n) <= (1<<1) ? 1 :\
 						(n) <= (1<<2) ? 2 : (n) <= (1<<3) ? 3 :\
 						(n) <= (1<<4) ? 4 : (n) <= (1<<5) ? 5 :\

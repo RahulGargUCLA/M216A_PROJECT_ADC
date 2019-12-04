@@ -1,6 +1,6 @@
 //Please do not change the name and port of the exitingance module
 
-module NLC_bonus(
+module NLC_opt(
 	
 	//System clock and reset
 	input wire clk,
@@ -513,6 +513,8 @@ always @(posedge clk) begin
       pipe_buff[13]    <=  32'b0;
       pipe_buff[14]    <=  32'b0;
       pipe_buff[15]    <=  32'b0;
+      x_lin_smc_bonus <= 32'b0;
+      flag <= 1'b0;
    end else begin
       case (state)
          IDLE: begin
@@ -541,6 +543,7 @@ always @(posedge clk) begin
                counter4             <=  4'b0;
                state                <=  INP_CONV_NORM;
                srdyi_x_adc          <=  1'b1; // start the converter
+               flag <= 1'b0;
             end
          end
          INP_CONV_NORM: begin
@@ -665,11 +668,8 @@ end
 
 always @(posedge clk) begin
    if (reset) begin
-      operation_mode_i_r <= 2'b00;
       state_ref <= IDLE_REF;
       x_ref_neg <= 32'b0;
-      x_lin_smc_bonus <= 32'b0;
-      flag = 1'b0;
       srdyi_add_x_ref <= 1'b0;
       error_max <= 31'b0;
       srdyi_x_ref <= 1'b0;
@@ -677,7 +677,6 @@ always @(posedge clk) begin
       case (state_ref) 
          IDLE_REF: begin
             if (srdyi) begin
-               flag <= 1'b0;
                if (operation_mode_i==2'b10) begin
                   state_ref <= REF_CONV;
                end
@@ -716,7 +715,10 @@ end
 
 // Coefficients/Mean/Standard Deviation 
 always @(posedge clk) begin
-   if (srdyi) begin
+   if (reset) begin
+      operation_mode_i_r <= 1'b0;
+   end
+   else if (srdyi) begin
       int_neg_mean[0]        <= ch0_neg_mean;
       int_neg_mean[1]        <= ch1_neg_mean;
       int_neg_mean[2]        <= ch2_neg_mean;
