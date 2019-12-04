@@ -274,7 +274,7 @@ reg                             flag;
 wire [31:0]                     z_o_portx_add_ref;
 reg                             srdyi_add_x_ref;
 wire                            srdyo_add_x_ref;
-reg [31:0]                      error_max;
+reg [30:0]                      error_max;
 wire [20:0]                     error_fp;
 wire                            srdyo_error_fp;
 reg                             srdyi_x_ref;
@@ -349,7 +349,7 @@ smc_float_adder ismc_float_adder_ref (
 smc_float_to_fp ismc_float_to_fp_x_lin_ref (
    .clk(clk),
    .GlobalReset(reset),
-   .x_i_porty(error_max),
+   .x_i_porty({1'b0,error_max[30:0]}),
    .y_o(error_fp),
    .srdyo_o(srdyo_error_fp),
    .srdyi_i(srdyi_x_ref)
@@ -359,22 +359,22 @@ smc_float_to_fp ismc_float_to_fp_x_lin_ref (
 // x_lin_reg are 16 21-bit registers holding the final ieee fp o/p of each
 // channel
 
-assign ch0_x_lin = x_lin_reg[0];
-assign ch1_x_lin = x_lin_reg[1];
-assign ch2_x_lin = x_lin_reg[2];
-assign ch3_x_lin = x_lin_reg[3];
-assign ch4_x_lin = x_lin_reg[4];
-assign ch5_x_lin = x_lin_reg[5];
-assign ch6_x_lin = x_lin_reg[6];
-assign ch7_x_lin = x_lin_reg[7];
-assign ch8_x_lin = x_lin_reg[8];
-assign ch9_x_lin = x_lin_reg[9];
-assign ch10_x_lin = x_lin_reg[10];
-assign ch11_x_lin = x_lin_reg[11];
-assign ch12_x_lin = x_lin_reg[12];
-assign ch13_x_lin = x_lin_reg[13];
-assign ch14_x_lin = x_lin_reg[14];
-assign ch15_x_lin = x_lin_reg[15];
+assign ch0_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[0];
+assign ch1_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[1];
+assign ch2_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[2];
+assign ch3_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[3];
+assign ch4_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[4];
+assign ch5_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[5];
+assign ch6_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[6];
+assign ch7_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[7];
+assign ch8_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[8];
+assign ch9_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[9];
+assign ch10_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[10];
+assign ch11_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[11];
+assign ch12_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[12];
+assign ch13_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[13];
+assign ch14_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[14];
+assign ch15_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[15];
 
 always @(*) begin
    x_adc_fp            <=  21'b0;
@@ -385,7 +385,6 @@ always @(*) begin
    y_i_porty_mul       <=  32'b0;
    srdyi_i_mul         <=  1'b0;
    x_lin_smc           <=  32'b0;
-   srdyo               <=  1'b0;
    x_lin_reg[0]        <=  21'b0;
    x_lin_reg[1]        <=  21'b0;
    x_lin_reg[2]        <=  21'b0;
@@ -463,25 +462,28 @@ always @(*) begin
          x_lin_smc      <=  z_o_portx_add;
       end
       RELEASE_OUTPUT: begin
-         x_lin_reg[0]   <=  pipe_buff[0][20:0];
-         x_lin_reg[1]   <=  pipe_buff[1][20:0];
-         x_lin_reg[2]   <=  pipe_buff[2][20:0];
-         x_lin_reg[3]   <=  pipe_buff[3][20:0];
-         x_lin_reg[4]   <=  pipe_buff[4][20:0];
-         x_lin_reg[5]   <=  pipe_buff[5][20:0];
-         x_lin_reg[6]   <=  pipe_buff[6][20:0];
-         x_lin_reg[7]   <=  pipe_buff[7][20:0];
-         x_lin_reg[8]   <=  pipe_buff[8][20:0];
-         x_lin_reg[9]   <=  pipe_buff[9][20:0];
-         x_lin_reg[10]  <=  pipe_buff[10][20:0];
-         x_lin_reg[11]  <=  pipe_buff[11][20:0];
-         x_lin_reg[12]  <=  pipe_buff[12][20:0];
-         x_lin_reg[13]  <=  pipe_buff[13][20:0];
-         x_lin_reg[14]  <=  pipe_buff[14][20:0];
-         x_lin_reg[15]  <=  pipe_buff[15][20:0];
-         srdyo          <=  1'b1;
+        x_lin_reg[0]   <=  pipe_buff[0][20:0];
+        x_lin_reg[1]   <=  pipe_buff[1][20:0];
+        x_lin_reg[2]   <=  pipe_buff[2][20:0];
+        x_lin_reg[3]   <=  pipe_buff[3][20:0];
+        x_lin_reg[4]   <=  pipe_buff[4][20:0];
+        x_lin_reg[5]   <=  pipe_buff[5][20:0];
+        x_lin_reg[6]   <=  pipe_buff[6][20:0];
+        x_lin_reg[7]   <=  pipe_buff[7][20:0];
+        x_lin_reg[8]   <=  pipe_buff[8][20:0];
+        x_lin_reg[9]   <=  pipe_buff[9][20:0];
+        x_lin_reg[10]  <=  pipe_buff[10][20:0];
+        x_lin_reg[11]  <=  pipe_buff[11][20:0];
+        x_lin_reg[12]  <=  pipe_buff[12][20:0];
+        x_lin_reg[13]  <=  pipe_buff[13][20:0];
+        x_lin_reg[14]  <=  pipe_buff[14][20:0];
+        x_lin_reg[15]  <=  pipe_buff[15][20:0];
       end
   endcase
+end
+
+always @(*) begin
+   srdyo <= (operation_mode_i_r==2'b10) ? srdyo_error_fp : (state==RELEASE_OUTPUT);
 end
 
 always @(posedge clk) begin
@@ -669,7 +671,7 @@ always @(posedge clk) begin
       x_lin_smc_bonus <= 32'b0;
       flag = 1'b0;
       srdyi_add_x_ref <= 1'b0;
-      error_max <= 32'b0;
+      error_max <= 31'b0;
       srdyi_x_ref <= 1'b0;
    end else begin
       case (state_ref) 
@@ -704,7 +706,9 @@ always @(posedge clk) begin
          end
          ERROR_CONV: begin
             srdyi_x_ref <= 1'b0;
-            state_ref <= IDLE_REF;
+            if (srdyo_error_fp==1) begin
+                state_ref <= IDLE_REF;
+            end
          end
       endcase
    end
@@ -845,10 +849,8 @@ always @(posedge clk) begin
             int_coeff[15][4]     <= ch15_coeff_4;
             int_coeff[15][5]     <= ch15_coeff_5;
           end
-          2'b10: begin
-            operation_mode_i_r <= operation_mode_i;
-            end
       endcase
+      operation_mode_i_r <= operation_mode_i;
    end
 end
 

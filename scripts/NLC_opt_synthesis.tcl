@@ -63,13 +63,20 @@ set_output_delay $OUT_DEL -clock "clk" [all_outputs]
 set_output_delay -min $OUT_DEL_MIN -clock "clk" [all_outputs]
 # Please do not change any of the number above. These numbers are given as part of the spec
 
+# SELF Adding timing exceptions
+# set_multicycle_path -setup 15 -from [get_pins -of_objects [get_cells -filter "full_name=~int_coeff* && is_sequential==true"] -filter "full_name=~*Q"]
+# set_multicycle_path -hold 14 -from [get_pins -of_objects [get_cells -filter "full_name=~int_coeff* && is_sequential==true"] -filter "full_name=~*Q"]
+# set_multicycle_path -setup 10 -from [get_pins -of_objects [get_cells -filter "full_name=~int_recip_stdev* && is_sequential==true"] -filter "full_name=~*Q"]
+# set_multicycle_path -hold 9 -from [get_pins -of_objects [get_cells -filter "full_name=~int_recip_stdev* && is_sequential==true"] -filter "full_name=~*Q"]
+# set_multicycle_path -setup 2 -from [get_pins -of_objects [get_cells -filter "full_name=~int_neg_mean* && is_sequential==true"] -filter "full_name=~*Q"]
+# set_multicycle_path -hold 1 -from [get_pins -of_objects [get_cells -filter "full_name=~int_neg_mean* && is_sequential==true"] -filter "full_name=~*Q"]
 
 # Synthesis constraint 
 set_max_total_power 0.0
 
 
 set_leakage_optimization true
-set_cost_priority -min_delay
+# set_cost_priority -min_delay
 
 ungroup -flatten -all
 uniquify
