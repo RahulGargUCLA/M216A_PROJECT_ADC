@@ -213,7 +213,7 @@ module NLC_opt(
 
 );
 
-// States
+// States for calculating Polynomial Fitting Function.
 parameter IDLE                  = 3'b000;
 parameter INP_CONV_NORM         = 3'b001;
 parameter MULTI_ACC_S5          = 3'b010;
@@ -223,13 +223,17 @@ parameter MULTI_ACC_S2          = 3'b101;
 parameter MULTI_ACC_S1          = 3'b110;
 parameter RELEASE_OUTPUT        = 3'b111;
 
+// States for calculating max error.
 parameter REF_CONV              = 3'b000;
 parameter ERROR_CALC            = 3'b001;
 parameter ERROR_COMP            = 3'b010;
 parameter ERROR_CONV            = 3'b011;
 parameter IDLE_REF              = 3'b111;
+
+// Other parameter definitions
 parameter MINUS_ONE             = 32'hC0000000;
 
+// Wire/Reg definitions.
 reg [31:0]                      pipe_buff[0:15];
 reg [31:0]                      mac_pipe_buff;
 reg [3:0]                       counter1;
@@ -358,7 +362,6 @@ smc_float_to_fp ismc_float_to_fp_x_lin_ref (
 
 // x_lin_reg are 16 21-bit registers holding the final ieee fp o/p of each
 // channel
-
 assign ch0_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[0];
 assign ch1_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[1];
 assign ch2_x_lin = (operation_mode_i_r==2'b10) ? error_fp : x_lin_reg[2];
@@ -486,6 +489,7 @@ always @(*) begin
    srdyo <= (operation_mode_i_r==2'b10) ? srdyo_error_fp : (state==RELEASE_OUTPUT);
 end
 
+// State machine to calculate polynomial fitting function.
 always @(posedge clk) begin
    if (reset) begin
       state            <=  IDLE;
@@ -664,8 +668,7 @@ always @(posedge clk) begin
    end
 end
 
-// State m/c for reference signal
-
+// State m/c for calculating max error.
 always @(posedge clk) begin
    if (reset) begin
       state_ref <= IDLE_REF;
@@ -717,8 +720,7 @@ end
 always @(posedge clk) begin
    if (reset) begin
       operation_mode_i_r <= 1'b0;
-   end
-   else if (srdyi) begin
+   end else if(srdyi) begin
       int_neg_mean[0]        <= ch0_neg_mean;
       int_neg_mean[1]        <= ch1_neg_mean;
       int_neg_mean[2]        <= ch2_neg_mean;
@@ -751,6 +753,7 @@ always @(posedge clk) begin
       int_recip_stdev[13]    <= ch13_recip_stdev;
       int_recip_stdev[14]    <= ch14_recip_stdev;
       int_recip_stdev[15]    <= ch15_recip_stdev;
+      operation_mode_i_r     <= operation_mode_i;
       case (operation_mode_i) 
          // Take inputs from outside
          2'b00: begin
@@ -852,7 +855,6 @@ always @(posedge clk) begin
             int_coeff[15][5]     <= ch15_coeff_5;
           end
       endcase
-      operation_mode_i_r <= operation_mode_i;
    end
 end
 
