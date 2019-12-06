@@ -11,9 +11,6 @@ set target_library "saed32rvt_ff1p16vn40c.db saed32rvt_ss0p95v125c.db"
 set link_library "* saed32rvt_ff1p16vn40c.db saed32rvt_ss0p95v125c.db dw_foundation.sldb"
 set synthetic_library "dw_foundation.sldb"
 
-
-
-
 # Define work path (note: The work path must exist, so you need to create a folder WORK first)
 define_design_lib WORK -path ./work
 set alib_library_analysis_path ?/alib-52/?
@@ -21,8 +18,6 @@ set alib_library_analysis_path ?/alib-52/?
 # Read the gate-level verilog files 
 #Add all your files that compose your project here
 #analyze -format verilog {define.h }
-
-
 analyze -format verilog {../RTL/SynLib.v}
 analyze -format verilog {../RTL/smc_float_adder.v}
 analyze -format verilog {../RTL/smc_float_to_fp.v}
@@ -36,9 +31,7 @@ elaborate $DESIGN_NAME
 current_design $DESIGN_NAME
 link
 
-
 set_operating_conditions -min ff1p16vn40c -max ss0p95v125c
-
 
 # Describe the clock waveform & setup operating conditions
 # Tclk as frequency of 6.144MHz and put all other parameters #relative to it
@@ -74,18 +67,25 @@ set_output_delay -min $OUT_DEL_MIN -clock "clk" [all_outputs]
 # Synthesis constraint 
 set_max_total_power 0.0
 
+# Enabling Power Gating
+set_clock_gating_style -sequential_cell_latch
+insert_clock_gating
+propagate_constraints -gate_clock
+report_clock_gating -hier > clock_gating.report
 
 set_leakage_optimization true
-# set_cost_priority -min_delay
 
 ungroup -flatten -all
 uniquify
 
-compile -map_effort low
+# Enabling high efforts for ower reduction.
+compile -map_effort low -power_effort high
 
-compile_ultra -incremental -retime 
-compile_ultra -only_design_rule -incremental 
+report_power
 
+compile_ultra -incremental  
+
+report_power
 
 #Export the report
 report_timing -path full -delay min -max_paths 10 -nworst 2 > holdtiming.report

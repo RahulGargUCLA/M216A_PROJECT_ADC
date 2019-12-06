@@ -213,7 +213,7 @@ module NLC_opt(
 
 );
 
-// States
+// States Values
 parameter IDLE                  = 3'b000;
 parameter INP_CONV_NORM         = 3'b001;
 parameter MULTI_ACC_S5          = 3'b010;
@@ -223,38 +223,39 @@ parameter MULTI_ACC_S2          = 3'b101;
 parameter MULTI_ACC_S1          = 3'b110;
 parameter RELEASE_OUTPUT        = 3'b111;
 
-reg [31:0]                      pipe_buff[0:15];
-reg [31:0]                      mac_pipe_buff;
-reg [3:0]                       counter1;
-reg [3:0]                       counter2;
-reg [3:0]                       counter3;
-reg [3:0]                       counter4;
-reg [2:0]                       state;
-reg [31:0]                      int_coeff[0:15][0:5];
-reg [31:0]                      int_recip_stdev[0:15];
-reg [31:0]                      int_neg_mean[0:15];
-
-reg [20:0]                      x_adc_fp;
-reg [31:0]                      x_i_porty_add;
-reg [31:0]                      x_i_porty_mul;
-reg [31:0]                      x_lin_smc;
-reg [31:0]                      y_i_porty_add;
-reg [31:0]                      y_i_porty_mul;
+// Reg/Wire Definitions
+reg   [20:0]                    x_adc_fp;
+reg   [20:0]                    x_lin_reg[0:15];
+reg   [2:0]                     state;
+reg   [3:0]                     counter1;
+reg   [3:0]                     counter2;
+reg   [3:0]                     counter3;
+reg   [3:0]                     counter4;
+reg   [31:0]                    int_coeff[0:15][0:5];
+reg   [31:0]                    int_neg_mean[0:15];
+reg   [31:0]                    int_recip_stdev[0:15];
+reg   [31:0]                    mac_pipe_buff;
+reg   [31:0]                    pipe_buff[0:15];
+reg   [31:0]                    x_i_porty_add;
+reg   [31:0]                    x_i_porty_mul;
+reg   [31:0]                    x_lin_smc;
+reg   [31:0]                    y_i_porty_add;
+reg   [31:0]                    y_i_porty_mul;
 reg                             srdyi_i_add;
 reg                             srdyi_i_mul;
 reg                             srdyi_i_mul_mac;
 reg                             srdyi_x_adc;
 reg                             srdyi_x_lin;
-wire [31:0]                     x_adc_smc;
-wire [31:0]                     z_o_portx_add;
-wire [31:0]                     z_o_portx_mul;
-wire                            srdyo_x_adc;
-wire                            srdyo_x_lin;
+wire  [20:0]                    x_lin;
+wire  [31:0]                    x_adc_smc;
+wire  [31:0]                    z_o_portx_add;
+wire  [31:0]                    z_o_portx_mul;
 wire                            srdyo_o_add;
 wire                            srdyo_o_mul;
-wire [20:0]                     x_lin;
-reg [20:0]                      x_lin_reg[0:15];
+wire                            srdyo_x_adc;
+wire                            srdyo_x_lin;
 
+// Blocks Instantiation.
 fp_to_smc_float ifp_to_smc_float_x_adc (
     .clk(clk),
     .GlobalReset(reset),
@@ -293,9 +294,7 @@ smc_float_adder ismc_float_adder (
    .srdyi_i(srdyi_i_add)
 );
 
-// x_lin_reg are 16 21-bit registers holding the final ieee fp o/p of each
-// channel
-
+// Final Linear value assignment to outputs.
 assign ch0_x_lin = x_lin_reg[0];
 assign ch1_x_lin = x_lin_reg[1];
 assign ch2_x_lin = x_lin_reg[2];
@@ -313,18 +312,23 @@ assign ch13_x_lin = x_lin_reg[13];
 assign ch14_x_lin = x_lin_reg[14];
 assign ch15_x_lin = x_lin_reg[15];
 
+// Combo Block which controls the inputs of the blocks based on the current
+// state.
 always @(*) begin
+   srdyi_i_add         <=  1'b0;
+   srdyi_i_mul         <=  1'b0;
+   srdyo               <=  1'b0;
    x_adc_fp            <=  21'b0;
    x_i_porty_add       <=  32'b0;
-   y_i_porty_add       <=  32'b0;
-   srdyi_i_add         <=  1'b0;
    x_i_porty_mul       <=  32'b0;
-   y_i_porty_mul       <=  32'b0;
-   srdyi_i_mul         <=  1'b0;
-   x_lin_smc           <=  32'b0;
-   srdyo               <=  1'b0;
    x_lin_reg[0]        <=  21'b0;
+   x_lin_reg[10]       <=  21'b0;
+   x_lin_reg[11]       <=  21'b0;
    x_lin_reg[1]        <=  21'b0;
+   x_lin_reg[12]       <=  21'b0;
+   x_lin_reg[13]       <=  21'b0;
+   x_lin_reg[14]       <=  21'b0;
+   x_lin_reg[15]       <=  21'b0;
    x_lin_reg[2]        <=  21'b0;
    x_lin_reg[3]        <=  21'b0;
    x_lin_reg[4]        <=  21'b0;
@@ -333,26 +337,23 @@ always @(*) begin
    x_lin_reg[7]        <=  21'b0;
    x_lin_reg[8]        <=  21'b0;
    x_lin_reg[9]        <=  21'b0;
-   x_lin_reg[10]       <=  21'b0;
-   x_lin_reg[11]       <=  21'b0;
-   x_lin_reg[12]       <=  21'b0;
-   x_lin_reg[13]       <=  21'b0;
-   x_lin_reg[14]       <=  21'b0;
-   x_lin_reg[15]       <=  21'b0;
+   x_lin_smc           <=  32'b0;
+   y_i_porty_add       <=  32'b0;
+   y_i_porty_mul       <=  32'b0;
    case(state) 
       INP_CONV_NORM: begin
-         x_adc_fp       <=  pipe_buff[counter1][20:0]; // give input fp values to the converter 
-         x_i_porty_add  <=  x_adc_smc; // connect converter o/p to the adder
-         y_i_porty_add  <=  int_neg_mean[counter2]; // give channel mean to the adder
-         srdyi_i_add    <=  srdyo_x_adc; // activate the adder when conversion is done
+         x_adc_fp       <=  pipe_buff[counter1][20:0]; 
+         x_i_porty_add  <=  x_adc_smc;
+         y_i_porty_add  <=  int_neg_mean[counter2]; 
+         srdyi_i_add    <=  srdyo_x_adc; 
          if (counter4==15) begin
             x_i_porty_mul  <=  pipe_buff[counter1];
             y_i_porty_mul  <=  int_coeff[counter1][5];
          end else begin
-            x_i_porty_mul  <=  z_o_portx_add; // feed the adder o/p to the multiplier
-            y_i_porty_mul  <=  int_recip_stdev[counter3]; // feed the mean to the multiplier
+            x_i_porty_mul  <=  z_o_portx_add; 
+            y_i_porty_mul  <=  int_recip_stdev[counter3]; 
          end
-         srdyi_i_mul    <=  srdyo_o_add | srdyi_i_mul_mac; // 
+         srdyi_i_mul    <=  srdyo_o_add | srdyi_i_mul_mac;  
       end
       MULTI_ACC_S5: begin
          if (counter2 > 9) begin
@@ -421,6 +422,8 @@ always @(*) begin
   endcase
 end
 
+// State machine to control the data flow across the blocks and to pipeline 
+// the design to compute x_lin for 16 channels using single piece of hardware.
 always @(posedge clk) begin
    if (reset) begin
       state            <=  IDLE;
@@ -450,9 +453,8 @@ always @(posedge clk) begin
       pipe_buff[15]    <=  32'b0;
    end else begin
       case (state)
+         // IDLE state - Here we are waiting for srdyi to trigger NLC engine.
          IDLE: begin
-            // if i/p is valid on the channels, latch them into pipe_buff
-            // move to the conversion and normalization state
             if (srdyi) begin
                pipe_buff[0][20:0]   <=  ch0_x_adc;
                pipe_buff[1][20:0]   <=  ch1_x_adc;
@@ -475,32 +477,34 @@ always @(posedge clk) begin
                counter3             <=  4'b0;
                counter4             <=  4'b0;
                state                <=  INP_CONV_NORM;
-               srdyi_x_adc          <=  1'b1; // start the converter
-            end
+               srdyi_x_adc          <=  1'b1; 
+            end 
          end
+         // This state is used for three diffferent purposes:
+         //     -> IEEE FP inputs are convertedd to SMC format.
+         //     -> Negative mean is added to converted input.
+         //     -> Then output is multiplied with inverse of std deviation.
          INP_CONV_NORM: begin
             if (counter1!=15)  
                counter1 <= counter1+1;
             else
-               srdyi_x_adc <= 1'b0; // conversion is finished, invalidate it's i/p
-            
-            if (srdyo_x_adc==1'b1) // if converter is producing a valid o/p
-               counter2 <= counter2+1; // give the next mean to the adder
-            
-            if (srdyo_o_add==1'b1) // if the adder is producing a valid o/p
-               counter3 <= counter3+1; // give the next stdev to the mult
-           
-            if (srdyo_o_mul==1'b1) begin // if the multiplier is producing a valid o/p
-               pipe_buff[counter4] <= z_o_portx_mul; // store the normalized valued in pipe_buff
+               srdyi_x_adc <= 1'b0; 
+            if (srdyo_x_adc==1'b1) 
+               counter2 <= counter2+1; 
+            if (srdyo_o_add==1'b1) 
+               counter3 <= counter3+1; 
+            if (srdyo_o_mul==1'b1) begin 
+               pipe_buff[counter4] <= z_o_portx_mul; 
                counter4 <= counter4+1;
             end
-
-            if (counter4==15) begin // we are done with normalization, move on to MAC stages
+            if (counter4==15) begin 
                counter1 <= 4'b0;
-               srdyi_i_mul_mac <= 1'b1; // keep the multiplier i/p valid
+               srdyi_i_mul_mac <= 1'b1; 
                state <= MULTI_ACC_S5;
             end 
          end
+         // This is first stage of MAC operation which calculates 
+         //                x1 = coeff4 + coeff5*x
          MULTI_ACC_S5: begin
             if (counter1 != 15)  
                counter1 <= counter1+1;
@@ -517,6 +521,8 @@ always @(posedge clk) begin
             if (srdyo_o_add)
                mac_pipe_buff <= z_o_portx_add;
          end
+         // This is second stage of MAC operation which calculates 
+         //                x2 = coeff3 + x1*x
          MULTI_ACC_S4: begin
             if (counter1 != 15)  
                counter1 <= counter1+1;
@@ -533,6 +539,8 @@ always @(posedge clk) begin
             if (srdyo_o_add)
                mac_pipe_buff <= z_o_portx_add;
          end
+         // This is third stage of MAC operation which calculates 
+         //                x3 = coeff2 + x2*x
          MULTI_ACC_S3: begin
             if (counter1 != 15)  
                counter1 <= counter1+1;
@@ -549,6 +557,8 @@ always @(posedge clk) begin
             if (srdyo_o_add)
                mac_pipe_buff <= z_o_portx_add;
          end
+         // This is fourth stage of MAC operation which calculates 
+         //                x4 = coeff1 + x3*x
          MULTI_ACC_S2: begin
             if (counter1 != 15)  
                counter1 <= counter1+1;
@@ -565,6 +575,9 @@ always @(posedge clk) begin
             if (srdyo_o_add)
                mac_pipe_buff <= z_o_portx_add;
          end
+         // This is fifth stage of MAC operation which calculates 
+         //                x5 = coeff0 + x4*x
+         // This stagte also converts output of last stage to IEEE FP format. 
          MULTI_ACC_S1: begin
             if (counter1 != 15)  
                counter1 <= counter1+1;
@@ -585,6 +598,7 @@ always @(posedge clk) begin
             if (srdyo_o_add)
                mac_pipe_buff <= z_o_portx_add;
          end
+         // Outputs are finally assigned to output channels.
          RELEASE_OUTPUT: begin
             state <= IDLE;
          end
@@ -592,7 +606,7 @@ always @(posedge clk) begin
    end
 end
 
-// Coefficients/Mean/Standard Deviation 
+// Latches to store Coefficients/Mean/Standard Deviation 
 always @(clk, srdyi) begin
    if (clk & srdyi) begin
       int_neg_mean[0]        <= ch0_neg_mean;
@@ -628,68 +642,67 @@ always @(clk, srdyi) begin
       int_recip_stdev[14]    <= ch14_recip_stdev;
       int_recip_stdev[15]    <= ch15_recip_stdev;
       case (operation_mode_i) 
-         // Take inputs from outside
          2'b00: begin
-            int_coeff[0][0]     <= ch0_coeff_0;          
-            int_coeff[0][1]     <= ch0_coeff_1;
-            int_coeff[0][2]     <= ch0_coeff_2;
-            int_coeff[0][3]     <= ch0_coeff_3;
-            int_coeff[0][4]     <= ch0_coeff_4;
-            int_coeff[0][5]     <= ch0_coeff_5;
-            int_coeff[1][0]     <= ch1_coeff_0;          
-            int_coeff[1][1]     <= ch1_coeff_1;
-            int_coeff[1][2]     <= ch1_coeff_2;
-            int_coeff[1][3]     <= ch1_coeff_3;
-            int_coeff[1][4]     <= ch1_coeff_4;
-            int_coeff[1][5]     <= ch1_coeff_5;
-            int_coeff[2][0]     <= ch2_coeff_0;          
-            int_coeff[2][1]     <= ch2_coeff_1;
-            int_coeff[2][2]     <= ch2_coeff_2;
-            int_coeff[2][3]     <= ch2_coeff_3;
-            int_coeff[2][4]     <= ch2_coeff_4;
-            int_coeff[2][5]     <= ch2_coeff_5;
-            int_coeff[3][0]     <= ch3_coeff_0;          
-            int_coeff[3][1]     <= ch3_coeff_1;
-            int_coeff[3][2]     <= ch3_coeff_2;
-            int_coeff[3][3]     <= ch3_coeff_3;
-            int_coeff[3][4]     <= ch3_coeff_4;
-            int_coeff[3][5]     <= ch3_coeff_5;
-            int_coeff[4][0]     <= ch4_coeff_0;          
-            int_coeff[4][1]     <= ch4_coeff_1;
-            int_coeff[4][2]     <= ch4_coeff_2;
-            int_coeff[4][3]     <= ch4_coeff_3;
-            int_coeff[4][4]     <= ch4_coeff_4;
-            int_coeff[4][5]     <= ch4_coeff_5;
-            int_coeff[5][0]     <= ch5_coeff_0;          
-            int_coeff[5][1]     <= ch5_coeff_1;
-            int_coeff[5][2]     <= ch5_coeff_2;
-            int_coeff[5][3]     <= ch5_coeff_3;
-            int_coeff[5][4]     <= ch5_coeff_4;
-            int_coeff[5][5]     <= ch5_coeff_5;
-            int_coeff[6][0]     <= ch6_coeff_0;          
-            int_coeff[6][1]     <= ch6_coeff_1;
-            int_coeff[6][2]     <= ch6_coeff_2;
-            int_coeff[6][3]     <= ch6_coeff_3;
-            int_coeff[6][4]     <= ch6_coeff_4;
-            int_coeff[6][5]     <= ch6_coeff_5;
-            int_coeff[7][0]     <= ch7_coeff_0;          
-            int_coeff[7][1]     <= ch7_coeff_1;
-            int_coeff[7][2]     <= ch7_coeff_2;
-            int_coeff[7][3]     <= ch7_coeff_3;
-            int_coeff[7][4]     <= ch7_coeff_4;
-            int_coeff[7][5]     <= ch7_coeff_5;
-            int_coeff[8][0]     <= ch8_coeff_0;          
-            int_coeff[8][1]     <= ch8_coeff_1;
-            int_coeff[8][2]     <= ch8_coeff_2;
-            int_coeff[8][3]     <= ch8_coeff_3;
-            int_coeff[8][4]     <= ch8_coeff_4;
-            int_coeff[8][5]     <= ch8_coeff_5;
-            int_coeff[9][0]     <= ch9_coeff_0;          
-            int_coeff[9][1]     <= ch9_coeff_1;
-            int_coeff[9][2]     <= ch9_coeff_2;
-            int_coeff[9][3]     <= ch9_coeff_3;
-            int_coeff[9][4]     <= ch9_coeff_4;
-            int_coeff[9][5]     <= ch9_coeff_5;
+            int_coeff[0][0]      <= ch0_coeff_0;          
+            int_coeff[0][1]      <= ch0_coeff_1;
+            int_coeff[0][2]      <= ch0_coeff_2;
+            int_coeff[0][3]      <= ch0_coeff_3;
+            int_coeff[0][4]      <= ch0_coeff_4;
+            int_coeff[0][5]      <= ch0_coeff_5;
+            int_coeff[1][0]      <= ch1_coeff_0;          
+            int_coeff[1][1]      <= ch1_coeff_1;
+            int_coeff[1][2]      <= ch1_coeff_2;
+            int_coeff[1][3]      <= ch1_coeff_3;
+            int_coeff[1][4]      <= ch1_coeff_4;
+            int_coeff[1][5]      <= ch1_coeff_5;
+            int_coeff[2][0]      <= ch2_coeff_0;          
+            int_coeff[2][1]      <= ch2_coeff_1;
+            int_coeff[2][2]      <= ch2_coeff_2;
+            int_coeff[2][3]      <= ch2_coeff_3;
+            int_coeff[2][4]      <= ch2_coeff_4;
+            int_coeff[2][5]      <= ch2_coeff_5;
+            int_coeff[3][0]      <= ch3_coeff_0;          
+            int_coeff[3][1]      <= ch3_coeff_1;
+            int_coeff[3][2]      <= ch3_coeff_2;
+            int_coeff[3][3]      <= ch3_coeff_3;
+            int_coeff[3][4]      <= ch3_coeff_4;
+            int_coeff[3][5]      <= ch3_coeff_5;
+            int_coeff[4][0]      <= ch4_coeff_0;          
+            int_coeff[4][1]      <= ch4_coeff_1;
+            int_coeff[4][2]      <= ch4_coeff_2;
+            int_coeff[4][3]      <= ch4_coeff_3;
+            int_coeff[4][4]      <= ch4_coeff_4;
+            int_coeff[4][5]      <= ch4_coeff_5;
+            int_coeff[5][0]      <= ch5_coeff_0;          
+            int_coeff[5][1]      <= ch5_coeff_1;
+            int_coeff[5][2]      <= ch5_coeff_2;
+            int_coeff[5][3]      <= ch5_coeff_3;
+            int_coeff[5][4]      <= ch5_coeff_4;
+            int_coeff[5][5]      <= ch5_coeff_5;
+            int_coeff[6][0]      <= ch6_coeff_0;          
+            int_coeff[6][1]      <= ch6_coeff_1;
+            int_coeff[6][2]      <= ch6_coeff_2;
+            int_coeff[6][3]      <= ch6_coeff_3;
+            int_coeff[6][4]      <= ch6_coeff_4;
+            int_coeff[6][5]      <= ch6_coeff_5;
+            int_coeff[7][0]      <= ch7_coeff_0;          
+            int_coeff[7][1]      <= ch7_coeff_1;
+            int_coeff[7][2]      <= ch7_coeff_2;
+            int_coeff[7][3]      <= ch7_coeff_3;
+            int_coeff[7][4]      <= ch7_coeff_4;
+            int_coeff[7][5]      <= ch7_coeff_5;
+            int_coeff[8][0]      <= ch8_coeff_0;          
+            int_coeff[8][1]      <= ch8_coeff_1;
+            int_coeff[8][2]      <= ch8_coeff_2;
+            int_coeff[8][3]      <= ch8_coeff_3;
+            int_coeff[8][4]      <= ch8_coeff_4;
+            int_coeff[8][5]      <= ch8_coeff_5;
+            int_coeff[9][0]      <= ch9_coeff_0;          
+            int_coeff[9][1]      <= ch9_coeff_1;
+            int_coeff[9][2]      <= ch9_coeff_2;
+            int_coeff[9][3]      <= ch9_coeff_3;
+            int_coeff[9][4]      <= ch9_coeff_4;
+            int_coeff[9][5]      <= ch9_coeff_5;
             int_coeff[10][0]     <= ch10_coeff_0;          
             int_coeff[10][1]     <= ch10_coeff_1;
             int_coeff[10][2]     <= ch10_coeff_2;
@@ -731,4 +744,4 @@ always @(clk, srdyi) begin
    end
 end
 
-endmodule
+endmodule // NLC_opt
