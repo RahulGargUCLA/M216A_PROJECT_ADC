@@ -236,10 +236,11 @@ wire [0:0] srdyo_int;
 reg [0:0] srdyi_int;
 reg [20:0]x_lin_ref_int;
 reg [20:0]  x_ref_int;
+reg             rst2;
 
 NLC_opt NLC_opt_wrapper_DUT(
    .clk(clk_int),
-   .reset(GlobalResetDsgn),
+   .reset(GlobalResetDsgn|rst2),
    .srdyi(srdyi_int),
    .srdyo(srdyo_int),
    .operation_mode_i(operation_mode_i_int),
@@ -443,6 +444,7 @@ clocks #(.cperiod(166666), .rperiod(1666660)) CL(
   always @(posedge clk_int)
   begin
       if(loop_cnt == 1) begin
+         rst2 <= 1'b0;
          operation_mode_i_int  <=  2'b00;
          // recip_stdev_ch0       <=  32'd921889856;
          // recip_stdev_ch1       <=  32'd921889856;
@@ -818,7 +820,61 @@ clocks #(.cperiod(166666), .rperiod(1666660)) CL(
          x_adc_int_ch15  <=  32'd23733;
          x_adc_int_ch0  <=  32'd23783;
          srdyi_int             <=  1;
+      end else if(loop_cnt == 401) begin
+         operation_mode_i_int  <=  2'b11;
+         neg_mean_ch0  <=  32'd3342340864;
+         neg_mean_ch10  <=  32'd3342340864;
+         neg_mean_ch11  <=  32'd3342340864;
+         neg_mean_ch12  <=  32'd3342340864;
+         neg_mean_ch1  <=  32'd3342340864;
+         neg_mean_ch13  <=  32'd3342340864;
+         neg_mean_ch14  <=  32'd3342340864;
+         neg_mean_ch15  <=  32'd3342340864;
+         neg_mean_ch2  <=  32'd3342340864;
+         neg_mean_ch3  <=  32'd3342340864;
+         neg_mean_ch4  <=  32'd3342340864;
+         neg_mean_ch5  <=  32'd3342340864;
+         neg_mean_ch6  <=  32'd3342340864;
+         neg_mean_ch7  <=  32'd3342340864;
+         neg_mean_ch8  <=  32'd3342340864;
+         neg_mean_ch9  <=  32'd3342340864;
+         recip_stdev_ch0  <=  32'd921889856;
+         recip_stdev_ch10  <=  32'd921889856;
+         recip_stdev_ch11  <=  32'd921889856;
+         recip_stdev_ch12  <=  32'd921889856;
+         recip_stdev_ch1  <=  32'd921889856;
+         recip_stdev_ch13  <=  32'd921889856;
+         recip_stdev_ch14  <=  32'd921889856;
+         recip_stdev_ch15  <=  32'd921889856;
+         recip_stdev_ch2  <=  32'd921889856;
+         recip_stdev_ch3  <=  32'd921889856;
+         recip_stdev_ch4  <=  32'd921889856;
+         recip_stdev_ch5  <=  32'd921889856;
+         recip_stdev_ch6  <=  32'd921889856;
+         recip_stdev_ch7  <=  32'd921889856;
+         recip_stdev_ch8  <=  32'd921889856;
+         recip_stdev_ch9  <=  32'd921889856;
+         x_adc_int_ch1  <=  32'd23333;
+         x_adc_int_ch2  <=  32'd23833;
+         x_adc_int_ch3  <=  32'd23883;
+         x_adc_int_ch4  <=  32'd23933;
+         x_adc_int_ch5  <=  32'd23383;
+         x_adc_int_ch6  <=  32'd23983;
+         x_adc_int_ch7  <=  32'd24033;
+         x_adc_int_ch8  <=  32'd24083;
+         x_adc_int_ch9  <=  32'd23433;
+         x_adc_int_ch10  <=  32'd23483;
+         x_adc_int_ch11  <=  32'd23533;
+         x_adc_int_ch12  <=  32'd23583;
+         x_adc_int_ch13  <=  32'd23633;
+         x_adc_int_ch14  <=  32'd23683;
+         x_adc_int_ch15  <=  32'd23733;
+         x_adc_int_ch0  <=  32'd23783;
+         srdyi_int             <=  1;
+      end else if (loop_cnt == 410) begin
+         rst2 <= 1'b1;
       end else begin
+        rst2 <= 1'b0
         operation_mode_i_int <= 0;
         recip_stdev_ch0    <= 0; 
         recip_stdev_ch1    <= 0; 
